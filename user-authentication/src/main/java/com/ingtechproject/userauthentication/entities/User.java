@@ -1,4 +1,4 @@
-package com.ingtechproject.userauthentication.user;
+package com.ingtechproject.userauthentication.entities;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -20,6 +20,12 @@ public class User {
 
     @Column(name = "email")
     private String email;
+
+    @Column(name = "age")
+    private Integer age;
+
+    @Column(name = "country")
+    private String country;
 
 
     public Integer getId() {
@@ -53,6 +59,14 @@ public class User {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public Integer getAge() { return age; }
+
+    public void setAge(Integer age) { this.age = age; }
+
+    public String getCountry() { return country; }
+
+    public void setCountry(String country) { this.country = country; }
 
     @Override
     public boolean equals(Object obj) {
