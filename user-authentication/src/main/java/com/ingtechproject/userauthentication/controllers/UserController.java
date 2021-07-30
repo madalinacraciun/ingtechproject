@@ -1,6 +1,6 @@
 package com.ingtechproject.userauthentication.controllers;
 
-import com.ingtechproject.userauthentication.entities.Authentication;
+import com.ingtechproject.userauthentication.dtos.AuthenticationDTO;
 import com.ingtechproject.userauthentication.entities.User;
 import com.ingtechproject.userauthentication.repositories.UserRepository;
 import com.ingtechproject.userauthentication.security.JwtSecurityConfig;
@@ -55,7 +55,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody Authentication auth) {
+    public String login(@RequestBody AuthenticationDTO auth) {
         if (auth.getUsername().isEmpty() || auth.getPassword().isEmpty()) {
             return "Username or password not provided!";
         }

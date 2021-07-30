@@ -1,9 +1,9 @@
-package com.ingtechproject.userauthentication.entities;
+package com.ingtechproject.userauthentication.dtos;
 
 import lombok.Data;
 
 @Data
-public class Authentication {
+public class AuthenticationDTO {
 
     private String username;
     private String password;
