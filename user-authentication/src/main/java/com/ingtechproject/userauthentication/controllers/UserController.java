@@ -1,14 +1,19 @@
 package com.ingtechproject.userauthentication.controllers;
 
+import com.ingtechproject.userauthentication.entities.Authentication;
 import com.ingtechproject.userauthentication.entities.User;
 import com.ingtechproject.userauthentication.repositories.UserRepository;
+import com.ingtechproject.userauthentication.security.JwtSecurityConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 
 @RestController
 public class UserController {
@@ -19,6 +24,9 @@ public class UserController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    JwtSecurityConfig jwtSecurityConfig;
 
     @PostMapping("/signup")
     public ResponseEntity<User> signup(@RequestBody User addedUser ) {
@@ -47,26 +55,27 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody User user) {
-        if (user.getUsername().isEmpty() || user.getPassword().isEmpty()) {
-            LOGGER.warn("Username or password not provided!");
-            return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+    public String login(@RequestBody Authentication auth) {
+        if (auth.getUsername().isEmpty() || auth.getPassword().isEmpty()) {
+            return "Username or password not provided!";
         }
 
-        User u = userRepository.findUserByUsername(user.getUsername());
-        if (u == null) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        User user = userRepository.findUserByUsername(auth.getUsername());
+        if (user == null) {
+            return "User not found!";
         }
 
-        if (bCryptPasswordEncoder.matches(user.getPassword(), u.getPassword())) {
-            return new ResponseEntity<>(u, HttpStatus.OK);
+        if (bCryptPasswordEncoder.matches(auth.getPassword(), user.getPassword())) {
+            LOGGER.info("User with username " + auth.getUsername() + " was successfully authenticated at " + new Date().toString());
+            return jwtSecurityConfig.generateToken(auth.getUsername());
         } else {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return "Passwords do not match!";
         }
     }
 
     @GetMapping("/user-details")
     public ResponseEntity<User> getUserDetails() {
-        return new ResponseEntity<>(null, null);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 }
