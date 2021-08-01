@@ -16,7 +16,7 @@ import java.util.function.Function;
 @Service
 public class JwtSecurityConfig {
 
-    public static final int JWT_VALIDITY = 1000 * 60 * 60 * 4;
+    public static final int JWT_VALIDITY = 1000 * 60 * 15;
 
     @Value("${jwt.secret}")
     private String secret;
@@ -33,12 +33,12 @@ public class JwtSecurityConfig {
         return getExpirationDateFromToken(token).before(new Date());
     }
 
-    public String getUsernameFromToken(String token) {
-        return getClaim(token, Claims::getSubject);
-    }
-
     public Date getExpirationDateFromToken(String token) {
         return getClaim(token, Claims::getExpiration);
+    }
+
+    public String getUsernameFromToken(String token) {
+        return getClaim(token, Claims::getSubject);
     }
 
     public String generateToken(String username) {
@@ -47,7 +47,6 @@ public class JwtSecurityConfig {
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
-
         return Jwts.builder()
                             .setClaims(claims)
                             .setSubject(subject)

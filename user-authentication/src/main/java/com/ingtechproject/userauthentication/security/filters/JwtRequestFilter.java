@@ -1,8 +1,9 @@
 package com.ingtechproject.userauthentication.security.filters;
 
 import com.ingtechproject.userauthentication.entities.User;
-import com.ingtechproject.userauthentication.repositories.UserRepository;
 import com.ingtechproject.userauthentication.security.JwtSecurityConfig;
+import com.ingtechproject.userauthentication.services.InvalidTokenService;
+import com.ingtechproject.userauthentication.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,7 +26,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private JwtSecurityConfig jwtSecurityConfig;
 
     @Autowired
-    UserRepository userRepository;
+    UserService userService;
+
+    @Autowired
+    InvalidTokenService invalidTokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
@@ -35,13 +39,19 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7);
+
+            if (invalidTokenService.getToken(token) != null) {
+                httpServletResponse.reset();
+                httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
             username = jwtSecurityConfig.getUsernameFromToken(token);
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (username != null && authentication == null) {
-            User user = userRepository.findUserByUsername(username);
+            User user = userService.getUserByUsername(username);
 
             if (jwtSecurityConfig.validateToken(token, user)) {
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
